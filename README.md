@@ -1,175 +1,79 @@
-# 📦 Project Setup
+
+#  1. 
+
+A secure, tested, containerized backend service built with FastAPI, SQLAlchemy, JWT authentication, and PostgreSQL, featuring full CI/CD deployment to Docker Hub.
+
+Features:
+   User registration & login (JWT authentication)
+
+   Polymorphic calculation system (addition, subtraction, multiplication, division)
+
+   CRUD operations for user‑owned calculations
+
+   Secure password hashing
+
+   Token expiration & refresh logic
+
+   Integration tests using PostgreSQL
+
+   Unit tests for authentication & JWT
+
+   GitHub Actions CI/CD pipeline
+
+   Dockerized deployment
+
+   Automatic vulnerability scanning (Trivy)
+
+   Auto‑generated API documentation (Swagger + ReDoc)
+
+Tech Stack
+   FastAPI
+
+   SQLAlchemy ORM
+
+   PostgreSQL
+
+   Pytest
+
+   Docker
+
+   GitHub Actions
+
+   JWT (python‑jose)
+
+   Pydantic v2
+
+   Uvicorn
+---
+
+# 🧩 2. Configuration
+
+## Clone
+
+   git clone https://github.com/davidb9790/module12_is601_v2.git
+   cd module12_is601_v2
 
 ---
 
-# 🧩 1. Install Homebrew (Mac Only)
+## Create Virtual Environment
+   python -m venv venv
+   source venv/bin/activate
 
-> Skip this step if you're on Windows.
-
-Homebrew is a package manager for macOS.  
-You’ll use it to easily install Git, Python, Docker, etc.
-
-**Install Homebrew:**
-
-```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
-
-**Verify Homebrew:**
-
-```bash
-brew --version
-```
-
-If you see a version number, you're good to go.
 
 ---
 
-# 🧩 2. Install and Configure Git
+## Install Dependencies
+   pip install -r requirements.txt
 
-## Install Git
-
-- **MacOS (using Homebrew)**
-
-```bash
-brew install git
-```
-
-- **Windows**
-
-Download and install [Git for Windows](https://git-scm.com/download/win).  
-Accept the default options during installation.
-
-**Verify Git:**
-
-```bash
-git --version
-```
 
 ---
 
-## Configure Git Globals
+# Running the Application
 
-Set your name and email so Git tracks your commits properly:
+   python3 main.py
 
-```bash
-git config --global user.name "Your Name"
-git config --global user.email "your_email@example.com"
-```
-
-Confirm the settings:
-
-```bash
-git config --list
-```
-
----
-
-## Generate SSH Keys and Connect to GitHub
-
-> Only do this once per machine.
-
-1. Generate a new SSH key:
-
-```bash
-ssh-keygen -t ed25519 -C "your_email@example.com"
-```
-
-(Press Enter at all prompts.)
-
-2. Start the SSH agent:
-
-```bash
-eval "$(ssh-agent -s)"
-```
-
-3. Add the SSH private key to the agent:
-
-```bash
-ssh-add ~/.ssh/id_ed25519
-```
-
-4. Copy your SSH public key:
-
-- **Mac/Linux:**
-
-```bash
-cat ~/.ssh/id_ed25519.pub | pbcopy
-```
-
-- **Windows (Git Bash):**
-
-```bash
-cat ~/.ssh/id_ed25519.pub | clip
-```
-
-5. Add the key to your GitHub account:
-   - Go to [GitHub SSH Settings](https://github.com/settings/keys)
-   - Click **New SSH Key**, paste the key, save.
-
-6. Test the connection:
-
-```bash
-ssh -T git@github.com
-```
-
-You should see a success message.
-
----
-
-# 🧩 3. Clone the Repository
-
-Now you can safely clone the course project:
-
-```bash
-git clone <repository-url>
-cd <repository-directory>
-```
-
----
-
-# 🛠️ 4. Install Python 3.10+
-
-## Install Python
-
-- **MacOS (Homebrew)**
-
-```bash
-brew install python
-```
-
-- **Windows**
-
-Download and install [Python for Windows](https://www.python.org/downloads/).  
-✅ Make sure you **check the box** `Add Python to PATH` during setup.
-
-**Verify Python:**
-
-```bash
-python3 --version
-```
-or
-```bash
-python --version
-```
-
----
-
-## Create and Activate a Virtual Environment
-
-(Optional but recommended)
-
-```bash
-python3 -m venv venv
-source venv/bin/activate   # Mac/Linux
-venv\Scripts\activate.bat  # Windows
-```
-
-### Install Required Packages
-
-```bash
-pip install -r requirements.txt
-```
+   API will be available at:
+   http://localhost:8000
 
 ---
 
@@ -196,38 +100,6 @@ docker run -it --rm <image-name>
 
 ---
 
-# 🚀 6. Running the Project
-
-- **Without Docker**:
-
-```bash
-python main.py
-```
-
-(or update this if the main script is different.)
-
-- **With Docker**:
-
-```bash
-docker run -it --rm <image-name>
-```
-
----
-
-# 📝 7. Submission Instructions
-
-After finishing your work:
-
-```bash
-git add .
-git commit -m "Complete Module X"
-git push origin main
-```
-
-Then submit the GitHub repository link as instructed.
-
----
-
 # 🔥 Useful Commands Cheat Sheet
 
 | Action                         | Command                                          |
@@ -248,14 +120,37 @@ Then submit the GitHub repository link as instructed.
 
 # 📋 Notes
 
-
-
----
-
-# 📎 Quick Links
-
-
-
-# NOTE TO SELF
 http://localhost:8000/docs API Test GUI
 http://localhost:5050      pgAdmin
+
+---
+# Authentication Endpoints
+   Register
+      POST /auth/register
+
+   Login (JSON)
+      POST /auth/login
+
+   Login (Form – Swagger)
+      POST /auth/token
+
+---
+# Calculation Endpoints
+   Create Calculation
+      POST /calculations
+
+   List Calculations
+      GET /calculations
+
+   Get Calculation
+      GET /calculations/{id}
+
+   Update Calculation
+      PUT /calculations/{id}
+
+   Delete Calculation
+      DELETE /calculations/{id}
+---
+
+# Testing
+   pytest
