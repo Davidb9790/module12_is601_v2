@@ -65,7 +65,7 @@ starlette==0.45.3
 
 tenacity==9.0.0
 tomli==2.2.1
-typing_extensions==4.12.2
+typing_extensions>=4.13.2
 tzdata==2025.1
 
 # CVE FIXED VERSION
