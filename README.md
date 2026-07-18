@@ -248,17 +248,14 @@ Then submit the GitHub repository link as instructed.
 
 # 📋 Notes
 
-- Install **Homebrew** first on Mac.
-- Install and configure **Git** and **SSH** before cloning.
-- Use **Python 3.10+** and **virtual environments** for Python projects.
-- **Docker** is optional depending on the project.
+
 
 ---
 
 # 📎 Quick Links
 
-- [Homebrew](https://brew.sh/)
-- [Git Downloads](https://git-scm.com/downloads)
-- [Python Downloads](https://www.python.org/downloads/)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- [GitHub SSH Setup Guide](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)
+
+
+# NOTE TO SELF
+http://localhost:8000/docs API Test GUI
+http://localhost:5050      pgAdmin

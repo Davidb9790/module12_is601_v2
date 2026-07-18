@@ -194,3 +194,164 @@ def test_missing_password_registration(db_session):
     # Adjust the expected error message
     with pytest.raises(ValueError, match="Password must be at least 6 characters long"):
         User.register(db_session, test_data)
+
+# Lines 37
+def test_get_current_user_minimal_payload():
+    """
+    Ensure get_current_user returns a default UserResponse when the JWT
+    contains only a 'sub' claim.
+    """
+    from app.auth.dependencies import get_current_user
+    from app.models.user import User
+    from fastapi import Depends
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    # Create a token with ONLY a 'sub' claim
+    user_id = "123e4567-e89b-12d3-a456-426614174000"
+    token = User.create_access_token({"sub": user_id})
+
+    # Temporary test route using the dependency
+    @app.get("/test-current-user")
+    def test_route(current_user=Depends(get_current_user)):
+        return current_user
+
+    client = TestClient(app)
+
+    response = client.get(
+        "/test-current-user",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["id"] == user_id
+    assert data["username"] == "unknown"
+    assert data["email"] == "unknown@example.com"
+    assert data["first_name"] == "Unknown"
+    assert data["last_name"] == "User"
+    assert data["is_active"] is True
+    assert data["is_verified"] is False
+
+# Line 37, 65
+# def test_get_current_user_invalid_payload():
+#     """
+#     Force get_current_user to hit the fallback exception block (line 65)
+#     by providing a decoded payload missing both 'username' and 'sub'.
+#     """
+#     from app.auth.dependencies import get_current_user
+#     from app.models.user import User
+#     from fastapi import Depends
+#     from fastapi.testclient import TestClient
+#     from app.main import app
+
+#     # Create a token with an invalid payload (no 'username', no 'sub')
+#     token = User.create_access_token({"foo": "bar"})
+
+#     @app.get("/test-invalid-payload")
+#     def test_route(current_user=Depends(get_current_user)):
+#         return current_user
+
+#     client = TestClient(app)
+
+#     response = client.get(
+#         "/test-invalid-payload",
+#         headers={"Authorization": f"Bearer {token}"}
+#     )
+
+#     # Should hit the fallback exception → 401
+#     assert response.status_code == 401
+#     assert response.json()["detail"] == "Could not validate credentials"
+
+
+# Lines 76-77
+import pytest
+from fastapi import HTTPException
+from app.auth.jwt import decode_token
+from app.schemas.token import TokenType
+
+@pytest.mark.asyncio
+async def test_decode_invalid_jwt_format():
+    invalid_token = "this.is.not.jwt"
+
+    with pytest.raises(HTTPException) as exc:
+        await decode_token(invalid_token, TokenType.ACCESS)
+
+    assert exc.value.detail == "Could not validate credentials"
+
+# Lines 90-127
+from app.auth.jwt import create_token
+from app.schemas.token import TokenType
+from datetime import timedelta
+from jose import jwt
+from app.core.config import get_settings
+
+settings = get_settings()
+
+def test_create_token_custom_expiration():
+    token = create_token("123", TokenType.ACCESS, expires_delta=timedelta(minutes=1))
+    decoded = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM])
+
+    assert decoded["sub"] == "123"
+    assert decoded["type"] == "access"
+
+from uuid import uuid4
+from app.auth.jwt import create_token
+from app.schemas.token import TokenType
+from jose import jwt
+from app.core.config import get_settings
+
+settings = get_settings()
+
+def test_create_token_uuid_input():
+    user_id = uuid4()
+    token = create_token(user_id, TokenType.ACCESS)
+    decoded = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM])
+
+    assert decoded["sub"] == str(user_id)
+
+from unittest.mock import patch
+import pytest
+from fastapi import HTTPException
+from app.auth.jwt import create_token
+from app.schemas.token import TokenType
+
+def test_create_token_exception():
+    with patch("app.auth.jwt.settings.JWT_SECRET_KEY", None):
+        with pytest.raises(HTTPException) as exc:
+            create_token("123", TokenType.ACCESS)
+
+        assert "Could not create token" in exc.value.detail
+
+# Lines 141-161
+import pytest
+from fastapi import HTTPException
+from app.auth.jwt import get_current_user, create_token
+from app.schemas.token import TokenType
+
+@pytest.mark.asyncio
+async def test_get_current_user_not_found(db_session):
+    token = create_token("non-existent-id", TokenType.ACCESS)
+
+    with pytest.raises(HTTPException) as exc:
+        await get_current_user(token=token, db=db_session)
+
+    assert exc.value.detail == "User not found"
+
+import pytest
+from fastapi import HTTPException
+from app.auth.jwt import get_current_user, create_token
+from app.schemas.token import TokenType
+
+@pytest.mark.asyncio
+async def test_get_current_user_inactive(db_session, test_user):
+    test_user.is_active = False
+    db_session.commit()
+
+    token = create_token(str(test_user.id), TokenType.ACCESS)
+
+    with pytest.raises(HTTPException) as exc:
+        await get_current_user(token=token, db=db_session)
+
+    assert exc.value.detail == "Inactive user"

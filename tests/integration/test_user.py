@@ -5,6 +5,7 @@
 #          Relies on 'conftest.py' for database session management and test isolation.
 # ======================================================================================
 
+from pydantic import model_validator
 import pytest
 import logging
 from sqlalchemy import text
@@ -325,3 +326,33 @@ def test_error_handling():
             session.execute(text("INVALID SQL"))
     assert "INVALID SQL" in str(exc_info.value)
 
+# Line 53-55
+@model_validator(mode="after")
+def verify_password_match(self):
+    if self.confirm_password is not None and self.password != self.confirm_password:
+        raise ValueError("Passwords do not match")
+    return self
+
+def test_password_mismatch():
+    from app.schemas.user import UserCreate
+    import pytest
+
+    with pytest.raises(ValueError):
+        UserCreate(
+            email="test@example.com",
+            username="testuser",
+            password="abc123",
+            confirm_password="different"
+        )
+# Lines 60-71 
+def test_password_too_short():
+    from app.schemas.user import UserCreate
+    import pytest
+
+    with pytest.raises(ValueError):
+        UserCreate(
+            email="test@example.com",
+            username="testuser",
+            password="Abc1!",
+            confirm_password="Abc1!"
+        )

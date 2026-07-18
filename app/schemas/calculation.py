@@ -81,6 +81,12 @@ class CalculationCreate(CalculationBase):
 
 class CalculationUpdate(BaseModel):
     """Schema for updating an existing Calculation"""
+    type: Optional[CalculationType] = Field(
+        None,
+        description="Updated calculation type",
+        example="multiplication"
+    )
+
     inputs: Optional[List[float]] = Field(
         None,
         description="Updated list of numeric inputs for the calculation",
@@ -97,7 +103,7 @@ class CalculationUpdate(BaseModel):
 
     model_config = ConfigDict(
         from_attributes=True,
-        json_schema_extra={"example": {"inputs": [42, 7]}}
+        json_schema_extra={"example": {"type": "division", "inputs": [100, 5]}}
     )
 
 class CalculationResponse(CalculationBase):

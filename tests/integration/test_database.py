@@ -53,3 +53,45 @@ def test_get_sessionmaker(mock_settings):
     engine = database.get_engine()
     SessionLocal = database.get_sessionmaker(engine)
     assert isinstance(SessionLocal, sessionmaker)
+
+
+from unittest.mock import MagicMock, patch
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session, sessionmaker
+
+from app.database import get_db, get_engine, get_sessionmaker
+
+
+# def test_get_db_yields_and_closes_session():
+#     mock_session = MagicMock(spec=Session)
+
+#     # Patch SessionLocal so get_db() uses our mock session
+#     with patch("app.database.SessionLocal", return_value=mock_session):
+#         gen = get_db()
+
+#         # First yield gives us the session
+#         db = next(gen)
+#         assert db is mock_session
+
+#         # Exhaust generator to trigger finally block
+#         try:
+#             next(gen)
+#         except StopIteration:
+#             pass
+
+#         # Ensure close() was called
+#         mock_session.close.assert_called_once()
+
+
+def test_get_engine_creates_engine():
+    engine = get_engine("sqlite:///:memory:")
+    assert isinstance(engine, Engine)
+
+
+def test_get_sessionmaker_creates_sessionmaker():
+    engine = get_engine("sqlite:///:memory:")
+    maker = get_sessionmaker(engine)
+
+    session = maker()
+    assert isinstance(session, Session)
+    assert session.bind is engine

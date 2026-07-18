@@ -194,17 +194,47 @@ def update_calculation(
         calc_uuid = UUID(calc_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid calculation id format.")
+
     calculation = db.query(Calculation).filter(
         Calculation.id == calc_uuid,
         Calculation.user_id == current_user.id
     ).first()
+
     if not calculation:
         raise HTTPException(status_code=404, detail="Calculation not found.")
 
+    # ---------------------------------------------------------
+    # OPTION: Replace polymorphic instance if type changes
+    # ---------------------------------------------------------
+    if calculation_update.type is not None:
+        # Create a new calculation of the new type using the factory
+        new_calc = Calculation.create(
+            calculation_type=calculation_update.type,
+            user_id=current_user.id,
+            inputs=calculation_update.inputs or calculation.inputs
+        )
+
+        # Preserve original metadata
+        new_calc.id = calculation.id
+        new_calc.created_at = calculation.created_at
+        new_calc.updated_at = datetime.utcnow()
+        new_calc.result = new_calc.get_result()
+
+        # Replace old instance
+        db.delete(calculation)
+        db.add(new_calc)
+        db.commit()
+        db.refresh(new_calc)
+        return new_calc
+
+    # ---------------------------------------------------------
+    # If only inputs changed (type unchanged)
+    # ---------------------------------------------------------
     if calculation_update.inputs is not None:
         calculation.inputs = calculation_update.inputs
         calculation.result = calculation.get_result()
-    calculation.updated_at = datetime.utcnow()
+        calculation.updated_at = datetime.utcnow()
+
     db.commit()
     db.refresh(calculation)
     return calculation
