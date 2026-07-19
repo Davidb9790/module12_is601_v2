@@ -356,3 +356,254 @@ def test_password_too_short():
             password="Abc1!",
             confirm_password="Abc1!"
         )
+
+# Line 53-55
+import pytest
+from app.schemas.user import UserCreate
+
+def test_usercreate_passwords_match():
+    user = UserCreate(
+        username="testuser",
+        email="test@example.com",
+        password="StrongPass123!",
+        confirm_password="StrongPass123!",
+        first_name="Test",
+        last_name="User"
+    )
+    assert user.password == user.confirm_password
+
+
+def test_usercreate_passwords_do_not_match():
+    with pytest.raises(ValueError) as exc:
+        UserCreate(
+            username="testuser",
+            email="test@example.com",
+            password="StrongPass123!",
+            confirm_password="WrongPass123!",
+            first_name="Test",
+            last_name="User"
+        )
+    assert "Passwords do not match" in str(exc.value)
+
+# Line 62
+import pytest
+from app.schemas.user import UserCreate
+
+def test_password_too_short():
+    with pytest.raises(ValueError) as exc:
+        UserCreate(
+            username="testuser",
+            email="test@example.com",
+            password="Aa1!",
+            confirm_password="Aa1!",
+            first_name="Test",
+            last_name="User"
+        )
+    assert "at least 8 characters" in str(exc.value)
+
+# Line 64
+def test_password_missing_uppercase():
+    with pytest.raises(ValueError) as exc:
+        UserCreate(
+            username="testuser",
+            email="test@example.com",
+            password="strongpass123!",
+            confirm_password="strongpass123!",
+            first_name="Test",
+            last_name="User"
+        )
+    assert "uppercase" in str(exc.value)
+
+# Line 66
+def test_password_missing_lowercase():
+    with pytest.raises(ValueError) as exc:
+        UserCreate(
+            username="testuser",
+            email="test@example.com",
+            password="STRONGPASS123!",
+            confirm_password="STRONGPASS123!",
+            first_name="Test",
+            last_name="User"
+        )
+    assert "lowercase" in str(exc.value)
+
+# Line 68
+def test_password_missing_digit():
+    with pytest.raises(ValueError) as exc:
+        UserCreate(
+            username="testuser",
+            email="test@example.com",
+            password="StrongPass!",
+            confirm_password="StrongPass!",
+            first_name="Test",
+            last_name="User"
+        )
+    assert "digit" in str(exc.value)
+# Line 70
+def test_password_missing_special_character():
+    with pytest.raises(ValueError) as exc:
+        UserCreate(
+            username="testuser",
+            email="test@example.com",
+            password="StrongPass123",
+            confirm_password="StrongPass123",
+            first_name="Test",
+            last_name="User"
+        )
+    assert "special character" in str(exc.value)
+
+# Line 184-188
+from app.schemas.user import PasswordUpdate
+
+def test_passwordupdate_mismatch():
+    with pytest.raises(ValueError) as exc:
+        PasswordUpdate(
+            current_password="OldPass123!",
+            new_password="NewPass123!",
+            confirm_new_password="WrongPass123!"
+        )
+    assert "confirmation do not match" in str(exc.value)
+
+def test_passwordupdate_same_as_current():
+    with pytest.raises(ValueError) as exc:
+        PasswordUpdate(
+            current_password="OldPass123!",
+            new_password="OldPass123!",
+            confirm_new_password="OldPass123!"
+        )
+    assert "different from current password" in str(exc.value)
+
+# Line 62
+def test_password_custom_length_check():
+    with pytest.raises(ValueError) as exc:
+        UserCreate(
+            username="testuser",
+            email="test@example.com",
+            password="aaaaaaa!",          # 8 chars → passes Field validator
+            confirm_password="aaaaaaa!",  # matches
+            first_name="Test",
+            last_name="User"
+        )
+    assert "uppercase" in str(exc.value) or "digit" in str(exc.value)
+
+# Line 188
+from app.schemas.user import PasswordUpdate
+import pytest
+
+def test_passwordupdate_same_as_current():
+    with pytest.raises(ValueError) as exc:
+        PasswordUpdate(
+            current_password="OldPass123!",
+            new_password="OldPass123!",
+            confirm_new_password="OldPass123!"
+        )
+    assert "different from current password" in str(exc.value)
+
+#  Line 48
+import uuid
+from app.models.user import User
+
+def test_user_init_hashed_password_rewrite():
+    user = User(
+        id=uuid.uuid4(),
+        username="testuser",
+        email="test@example.com",
+        hashed_password="hashed123"
+    )
+
+    # The __init__ should rewrite hashed_password → password
+    assert user.password == "hashed123"
+
+# Line 65-68
+import uuid
+from datetime import datetime, timezone
+from app.models.user import User
+
+def test_user_update_method():
+    # Create a user with initial values
+    user = User(
+        id=uuid.uuid4(),
+        username="oldname",
+        email="old@example.com",
+        password="pass123",
+        first_name="Old",
+        last_name="Name",
+        is_active=True,
+        is_verified=False,
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc)
+    )
+
+    old_updated_at = user.updated_at
+
+    # Call update() with new values
+    user.update(
+        username="newname",
+        email="new@example.com"
+    )
+
+    # Ensure attributes were updated
+    assert user.username == "newname"
+    assert user.email == "new@example.com"
+
+    # Ensure updated_at was refreshed
+    assert user.updated_at > old_updated_at
+
+    # Ensure update() returns the same instance
+    assert isinstance(user, User)
+
+# Line 73
+import uuid
+from datetime import datetime, timezone
+from app.models.user import User
+
+def test_user_hashed_password_property():
+    user = User(
+        id=uuid.uuid4(),
+        username="testuser",
+        email="test@example.com",
+        password="hashed123",
+        first_name="Test",
+        last_name="User",
+        is_active=True,
+        is_verified=False,
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc)
+    )
+
+    # Access the property directly (NOT callable)
+    assert user.hashed_password == "hashed123"
+
+# Line 226
+def test_verify_token_returns_none_when_sub_missing():
+    from jose import jwt
+    from app.core.config import settings
+
+    # Create a token WITHOUT "sub"
+    token = jwt.encode({"foo": "bar"}, settings.JWT_SECRET_KEY, algorithm=settings.ALGORITHM)
+
+    result = User.verify_token(token)
+    assert result is None
+
+# Line 229-230
+def test_verify_token_returns_none_when_sub_invalid_uuid():
+    from jose import jwt
+    from app.core.config import settings
+
+    # sub is present but NOT a valid UUID
+    token = jwt.encode({"sub": "not-a-valid-uuid"}, settings.JWT_SECRET_KEY, algorithm=settings.ALGORITHM)
+
+    result = User.verify_token(token)
+    assert result is None
+
+def test_verify_token_valid_uuid():
+    from jose import jwt
+    from app.core.config import settings
+    import uuid
+
+    user_id = uuid.uuid4()
+
+    token = jwt.encode({"sub": str(user_id)}, settings.JWT_SECRET_KEY, algorithm=settings.ALGORITHM)
+
+    result = User.verify_token(token)
+    assert result == user_id

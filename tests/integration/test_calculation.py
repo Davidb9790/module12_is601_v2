@@ -150,3 +150,46 @@ def test_invalid_inputs_for_division():
     division = Division(user_id=dummy_user_id(), inputs=[10])
     with pytest.raises(ValueError, match="Inputs must be a list with at least two numbers."):
         division.get_result()
+
+# Line 47
+
+# Line 50-51
+import pytest
+import uuid
+from app.schemas.calculation import CalculationCreate
+
+def test_calculation_division_by_zero_schema():
+    with pytest.raises(ValueError, match="Cannot divide by zero"):
+        CalculationCreate(
+            type="division",
+            inputs=[100, 0, 5],  # second value is zero → triggers the branch
+            user_id=uuid.uuid4()
+        )
+
+
+# Line 50-51
+
+
+# Line 101
+# Line 95
+import pytest
+from app.models.calculation import Calculation
+
+def test_calculation_get_result_not_implemented():
+    calc = Calculation()
+    with pytest.raises(NotImplementedError):
+        calc.get_result()
+
+# Line 98
+from app.models.calculation import Calculation
+
+def test_calculation_repr():
+    calc = Calculation(
+        type="addition",
+        inputs=[1, 2]
+    )
+
+    result = repr(calc)
+
+    assert result == "<Calculation(type=addition, inputs=[1, 2])>"
+
