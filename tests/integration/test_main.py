@@ -81,33 +81,3 @@ def test_get_calculation_invalid_uuid():
     assert response.status_code == 400
     assert response.json()["detail"] == "Invalid calculation id format."
 
-# def test_get_calculation_not_found():
-#     fake_id = str(uuid.uuid4())
-#     response = client.get(f"/calculations/{fake_id}")
-#     assert response.status_code == 404
-#     assert response.json()["detail"] == "Calculation not found."
-
-# def test_get_calculation_success():
-#     db = TestingSessionLocal()
-
-#     # Use a valid calculation type
-#     calc = Calculation.create(
-#         calculation_type="addition",
-#         user_id=1,
-#         inputs={"a": 2, "b": 3}
-#     )
-#     calc.result = calc.get_result()
-
-#     db.add(calc)
-#     db.commit()
-#     db.refresh(calc)
-#     calc_id = str(calc.id)
-#     db.close()
-
-#     response = client.get(f"/calculations/{calc_id}")
-#     assert response.status_code == 200
-
-#     data = response.json()
-#     assert data["id"] == calc_id
-#     assert data["result"] == 5
-#     assert data["inputs"] == {"a": 2, "b": 3}
